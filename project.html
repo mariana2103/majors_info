@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+<h1> Média por curso </h1>
+
+{% endblock %}
+
+{% block body %}
+
+<table>
+    <tr>
+        <th> Curso </th>
+        <th> Universidade </th>
+        <th> Provas de Ingresso </th>
+        <th> 2023/2024 </th>
+        <th> 2022/2023 </th>
+        <th> 2021/2022 </th>
+        <th> Tipo de ensino </th>
+    </tr>
+    <tr> 
+        {% for row in data %}
+        <tr>
+            {% for cell in data %}
+            <td> {{ cell }} </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+    </tr>
+
+</table>
+{% endblock %}

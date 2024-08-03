@@ -1,1 +1,119 @@
+from urllib.request import urlopen
+import re
+import mysql.connector
+import string
 
+mydb = mysql.connector.connect(
+  host="127.0.0.1",
+  user="senaclub_m",
+  password="MerdaPuta1",
+  database="senaclub_college"
+)
+
+
+
+mycursor = mydb.cursor()
+
+
+for letter in string.ascii_uppercase:
+  if letter in "K,U,W,X,Y,Z":
+     continue
+
+  url = "https://www.dges.gov.pt/guias/indcurso.asp?letra=" 
+  url = url + letter
+  page = urlopen(url)
+  html_bytes = page.read()
+  html = html_bytes.decode('latin-1')
+  areas = re.findall("div class='lin-area-c2'>.*?</div>", html)
+  areas = "".join(areas)
+  areas = re.sub("div class='lin-area-c2'>", "", areas)
+  areas = areas.split("</div>")
+  
+  Areas= re.findall("div class='box10'>.*?div class='box10'>", html)
+  
+  Inserir= []
+  
+  dges = "https://www.dges.gov.pt/guias/"
+  
+  for i in range(0,len(Areas)):
+      Inserir.append(())
+      codigo = re.findall("div class='lin-curso-c2'>.*?</div>", Areas[i])
+      codigo = "".join(codigo)
+      codigo = re.sub("div class='lin-curso-c2'>", "", codigo)
+      codigo = codigo.split("</div>")
+      link = re.findall("href='.*?'", Areas[i])
+      link = "".join(link)
+      link = re.sub("href=","", link)
+      link = link.split("'")
+      universidade = re.findall("div class='lin-curso-c3'>.*?</div>", Areas[i])
+      universidade = "".join(universidade)
+      universidade = re.findall(">.*?<", universidade)
+      universidade = "".join(universidade)
+      universidade = re.sub(">","",universidade)
+      universidade = universidade.split("<")
+  
+      for n in range(0,len(codigo)-1):
+        num = int(codigo[n])
+        sql = "INSERT INTO majors (code, major, university, link) VALUES (%s, %s, %s, %s)"
+        mycursor.execute(sql, (num, areas[i], universidade[n], link[n]))
+
+mydb.commit()
+
+mycursor.execute("SELECT link FROM majors")
+
+myresult = [('detcursopi.asp?codc=L160&code=4614',),('detcursopi.asp?codc=9003&code=3051#lev1',)]
+
+
+
+for x in myresult:
+  dges = "ttps://www.dges.gov.pt/guias/"
+  url = "h" + dges + x[0]
+  page = urlopen(url)
+  html_bytes = page.read()
+  html = html_bytes.decode('latin-1')
+
+  Ensino = re.findall("Ensino Superior.*?<", html)
+  Ensino = "".join(Ensino)
+  Ensino = re.sub("Ensino Superior", "", Ensino)
+  Ensino = Ensino.split("<")
+
+  Provas = re.findall("Provas de Ingresso.*?<h2>", html)
+  Provas = "".join(Provas)
+  Provas = re.sub("<h2>", "", Provas)
+  Provas = Provas.split("<br>")
+
+  Texto_Provas = ''
+  for i in Provas[1:]:
+    if ";ou" in i:
+      Texto_Provas += 'ou\n'
+    elif ";e" in i:
+      Texto_Provas += 'e\n'
+    else:
+      Texto_Provas += i
+      Texto_Provas += '\n'
+  
+  Nota_22 = ''
+  Nota_23 = ''
+  Nota_24 = ''
+
+
+  if "Nota de Candidatura do Último Colocado pelo Contingente Geral" in html:
+    Notas = re.findall('<td class="tvag">.*?</td>', html)
+    Notas = "".join(Notas)
+    Notas = re.sub('class="tvag">', "", Notas)
+    Notas = Notas.split("</td>")
+
+    for n in range(6):
+      if n<2:
+        Nota_22 += Notas[n]
+        Nota_22 += '\n'
+      elif n<4:
+        Nota_23 += Notas[n]
+        Nota_23 += '\n'
+      else:
+        Nota_24 += Notas[n]
+        Nota_24 += '\n'
+
+
+  sql = "INSERT INTO majors (ensino, provas, nota22, nota23, nota24) VALUES (%s, %s, %s, %s, %s)"
+  mycursor.execute(sql, (Ensino, Provas, Nota_22, Nota_23, Nota_24))
